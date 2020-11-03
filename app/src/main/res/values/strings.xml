@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">AutoTrackApp</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="main_fragment_label">AndroidAutoTrack</string>
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="third_fragment_label">Third Fragment</string>
+    <string name="fourth_fragment_label">Fourth Fragment</string>
+    <string name="fifth_fragment_label">Fifth Fragment</string>
+    <string name="sixth_fragment_label">Sixth Fragment</string>
+    <string name="seventh_fragment_label">Seventh Fragment</string>
+    <string name="eighth_fragment_label">Eighth Fragment</string>
+    <string name="ninth_fragment_label">Ninth Fragment</string>
+    <string name="tenth_fragment_label">Tenth Fragment</string>
+
+    <string name="chapter_one">Chapter1：AppViewScreen全埋点方案</string>
+    <string name="chapter_two">Chapter2：AppStart、AppEnd全埋点方案</string>
+    <string name="chapter_three">Chapter3：View.OnClickListener全埋点方案</string>
+    <string name="chapter_four">Chapter4：Window.Callback全埋点方案</string>
+    <string name="chapter_five">Chapter5：View.AccessibilityDelegate全埋点方案</string>
+    <string name="chapter_six">Chapter6：透明层全埋点方案</string>
+    <string name="chapter_seven">Chapter7：AspectJ全埋点方案</string>
+    <string name="chapter_eight">Chapter8：ASM全埋点方案</string>
+    <string name="chapter_nine">Chapter9：Javassist全埋点方案</string>
+    <string name="chapter_ten">Chapter10：APT/AST全埋点方案</string>
+
+    <string name="fragment_title1">AppViewScreen全埋点方案</string>
+    <string name="fragment_title2">AppStart、AppEnd全埋点方案</string>
+    <string name="fragment_title3">View.OnClickListener全埋点方案</string>
+    <string name="fragment_title4">Window.Callback全埋点方案</string>
+    <string name="fragment_title5">View.AccessibilityDelegate全埋点方案</string>
+    <string name="fragment_title6">透明层全埋点方案</string>
+    <string name="fragment_title7">AspectJ全埋点方案</string>
+    <string name="fragment_title8">ASM全埋点方案</string>
+    <string name="fragment_title9">Javassist全埋点方案</string>
+    <string name="fragment_title10">APT/AST全埋点方案</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+</resources>

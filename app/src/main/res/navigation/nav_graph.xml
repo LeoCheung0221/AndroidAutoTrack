@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/MainFragment">
+
+    <fragment
+        android:id="@+id/MainFragment"
+        android:name="com.tufusi.autotrack.MainFragment"
+        android:label="@string/main_fragment_label"
+        tools:layout="@layout/fragment_main">
+
+        <action
+            android:id="@+id/action_MainFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_SecondFragment"
+            app:destination="@id/SecondFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_ThirdFragment"
+            app:destination="@id/ThirdFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_FourthFragment"
+            app:destination="@id/FourthFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_FifthFragment"
+            app:destination="@id/FifthFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_SixthFragment"
+            app:destination="@id/SixthFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_SeventhFragment"
+            app:destination="@id/SeventhFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_EighthFragment"
+            app:destination="@id/EighthFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_NinthFragment"
+            app:destination="@id/NinthFragment" />
+
+        <action
+            android:id="@+id/action_MainFragment_to_TenthFragment"
+            app:destination="@id/TenthFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/FirstFragment"
+        android:name="com.tufusi.autotrack.AppViewScreenFragment"
+        android:label="@string/fragment_title1"
+        tools:layout="@layout/fragment_app_view_screen">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/SecondFragment"
+        android:name="com.tufusi.autotrack.AppStartEndFragment"
+        android:label="@string/fragment_title2"
+        tools:layout="@layout/fragment_app_start_end">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/ThirdFragment"
+        android:name="com.tufusi.autotrack.AppViewOnClickListenerFragment"
+        android:label="@string/fragment_title3"
+        tools:layout="@layout/fragment_app_view_onclick_listener">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/FourthFragment"
+        android:name="com.tufusi.autotrack.AppWindowCallbackFragment"
+        android:label="@string/fragment_title4"
+        tools:layout="@layout/fragment_app_window_callback">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/FifthFragment"
+        android:name="com.tufusi.autotrack.AppViewAccessibilityDelegateFragment"
+        android:label="@string/fragment_title5"
+        tools:layout="@layout/fragment_app_view_accessibilitydelegate">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/SixthFragment"
+        android:name="com.tufusi.autotrack.AppTransparentLayerFragment"
+        android:label="@string/fragment_title6"
+        tools:layout="@layout/fragment_app_transparent_layer">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/SeventhFragment"
+        android:name="com.tufusi.autotrack.AppAspectJFragment"
+        android:label="@string/fragment_title7"
+        tools:layout="@layout/fragment_app_aspect_j">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EighthFragment"
+        android:name="com.tufusi.autotrack.AppASMFragment"
+        android:label="@string/fragment_title8"
+        tools:layout="@layout/fragment_app_asm">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/NinthFragment"
+        android:name="com.tufusi.autotrack.AppJavassistFragment"
+        android:label="@string/fragment_title9"
+        tools:layout="@layout/fragment_app_javassist">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/TenthFragment"
+        android:name="com.tufusi.autotrack.AppAptOrAstFragment"
+        android:label="@string/fragment_title10"
+        tools:layout="@layout/fragment_app_apt_ast">
+
+    </fragment>
+</navigation>
