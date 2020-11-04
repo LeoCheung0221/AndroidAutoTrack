@@ -55,7 +55,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.tufusi.autotrack.AppViewScreenFragment"
+        android:name="com.tufusi.autotrack.scenario.AppViewScreenFragment"
         android:label="@string/fragment_title1"
         tools:layout="@layout/fragment_app_view_screen">
 
@@ -63,7 +63,7 @@
 
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="com.tufusi.autotrack.AppStartEndFragment"
+        android:name="com.tufusi.autotrack.scenario.AppStartEndFragment"
         android:label="@string/fragment_title2"
         tools:layout="@layout/fragment_app_start_end">
 
@@ -71,7 +71,7 @@
 
     <fragment
         android:id="@+id/ThirdFragment"
-        android:name="com.tufusi.autotrack.AppViewOnClickListenerFragment"
+        android:name="com.tufusi.autotrack.scenario.AppViewOnClickListenerFragment"
         android:label="@string/fragment_title3"
         tools:layout="@layout/fragment_app_view_onclick_listener">
 
@@ -79,7 +79,7 @@
 
     <fragment
         android:id="@+id/FourthFragment"
-        android:name="com.tufusi.autotrack.AppWindowCallbackFragment"
+        android:name="com.tufusi.autotrack.scenario.AppWindowCallbackFragment"
         android:label="@string/fragment_title4"
         tools:layout="@layout/fragment_app_window_callback">
 
@@ -87,7 +87,7 @@
 
     <fragment
         android:id="@+id/FifthFragment"
-        android:name="com.tufusi.autotrack.AppViewAccessibilityDelegateFragment"
+        android:name="com.tufusi.autotrack.scenario.AppViewAccessibilityDelegateFragment"
         android:label="@string/fragment_title5"
         tools:layout="@layout/fragment_app_view_accessibilitydelegate">
 
@@ -95,7 +95,7 @@
 
     <fragment
         android:id="@+id/SixthFragment"
-        android:name="com.tufusi.autotrack.AppTransparentLayerFragment"
+        android:name="com.tufusi.autotrack.scenario.AppTransparentLayerFragment"
         android:label="@string/fragment_title6"
         tools:layout="@layout/fragment_app_transparent_layer">
 
@@ -103,7 +103,7 @@
 
     <fragment
         android:id="@+id/SeventhFragment"
-        android:name="com.tufusi.autotrack.AppAspectJFragment"
+        android:name="com.tufusi.autotrack.scenario.AppAspectJFragment"
         android:label="@string/fragment_title7"
         tools:layout="@layout/fragment_app_aspect_j">
 
@@ -111,7 +111,7 @@
 
     <fragment
         android:id="@+id/EighthFragment"
-        android:name="com.tufusi.autotrack.AppASMFragment"
+        android:name="com.tufusi.autotrack.scenario.AppASMFragment"
         android:label="@string/fragment_title8"
         tools:layout="@layout/fragment_app_asm">
 
@@ -119,7 +119,7 @@
 
     <fragment
         android:id="@+id/NinthFragment"
-        android:name="com.tufusi.autotrack.AppJavassistFragment"
+        android:name="com.tufusi.autotrack.scenario.AppJavassistFragment"
         android:label="@string/fragment_title9"
         tools:layout="@layout/fragment_app_javassist">
 
@@ -127,7 +127,7 @@
 
     <fragment
         android:id="@+id/TenthFragment"
-        android:name="com.tufusi.autotrack.AppAptOrAstFragment"
+        android:name="com.tufusi.autotrack.scenario.AppAptOrAstFragment"
         android:label="@string/fragment_title10"
         tools:layout="@layout/fragment_app_apt_ast">
 
