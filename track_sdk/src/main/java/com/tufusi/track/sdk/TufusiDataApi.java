@@ -34,6 +34,12 @@ public class TufusiDataApi {
         TufusiDataPrivate.registerActivityLifecycleCallbacks(application);
     }
 
+    /**
+     * 埋点初始化函数 内部实现单例模式 用私有构造函数初始化埋点sdk
+     *
+     * @param application 应用对象
+     * @return 单例对象
+     */
     @Keep
     public static TufusiDataApi init(Application application) {
         synchronized (mLock) {
@@ -44,6 +50,11 @@ public class TufusiDataApi {
         return INSTANCE;
     }
 
+    /**
+     * 静态方法，获取埋点sdk实体对象
+     *
+     * @return 返回实体对象
+     */
     public static TufusiDataApi getInstance() {
         return INSTANCE;
     }

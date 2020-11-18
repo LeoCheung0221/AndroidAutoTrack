@@ -1,17 +1,15 @@
-package com.tufusi.autotrack;
+package com.tufusi.autotrack.ui;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.MutableLiveData;
 import androidx.navigation.fragment.NavHostFragment;
+
+import com.tufusi.autotrack.R;
 
 public class MainFragment extends Fragment {
 
