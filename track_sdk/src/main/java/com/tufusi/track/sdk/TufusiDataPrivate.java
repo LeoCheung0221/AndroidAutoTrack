@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Keep;
@@ -167,17 +168,20 @@ class TufusiDataPrivate {
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
                 mDatabaseHelper.commitAppStartEvent(true);
+
                 long timeDiff = System.currentTimeMillis() - mDatabaseHelper.getAppPausedTime();
                 // 如果暂停时长超过自定义间隔时长，则认为是满足 跟踪 AppEnd 事件条件
+                // 一旦跳转新页面，即使前一个界面未被finish掉，由于间隔时间太短也不会命中此处
                 if (timeDiff > SESSION_INTERVAL_TIME) {
-                    // 获取 AppEnd 状态，如果不是结束状态
+                    // 获取 AppEnd 状态，如果不是结束状态，只要没有进入后台均不会命中此处
                     if (!mDatabaseHelper.getAppEndEventState()) {
                         trackAppEnd(activity);
                     }
                 }
 
-                //  如果获取到的 AppEnd 状态是已结束，则重新开启
+                //  如果获取到的 AppEnd 状态是已结束，则重新开启，只要在前台均会命中此处
                 if (mDatabaseHelper.getAppEndEventState()) {
+                    // 一旦进入，即设置结束状态false,从而不会再次进入这里
                     mDatabaseHelper.commitAppEndEventState(false);
                     trackAppStart(activity);
                 }

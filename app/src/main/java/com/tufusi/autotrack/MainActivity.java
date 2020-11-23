@@ -1,35 +1,19 @@
-package com.tufusi.autotrack.ui;
+package com.tufusi.autotrack;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.tufusi.track.sdk.TufusiDataApi;
-import com.tufusi.autotrack.R;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
-import androidx.navigation.NavGraph;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import android.util.Log;
-import android.view.View;
-
 import android.view.Menu;
 import android.view.MenuItem;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
