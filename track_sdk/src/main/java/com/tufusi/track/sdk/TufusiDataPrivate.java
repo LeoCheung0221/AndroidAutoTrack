@@ -167,6 +167,7 @@ class TufusiDataPrivate {
 
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
+                // 设置 App Start 状态为 true
                 mDatabaseHelper.commitAppStartEvent(true);
 
                 long timeDiff = System.currentTimeMillis() - mDatabaseHelper.getAppPausedTime();
@@ -179,7 +180,7 @@ class TufusiDataPrivate {
                     }
                 }
 
-                //  如果获取到的 AppEnd 状态是已结束，则重新开启，只要在前台均会命中此处
+                // 如果获取到的 AppEnd 状态是已结束，则重新开启，App 只要在前台均会命中此处
                 if (mDatabaseHelper.getAppEndEventState()) {
                     // 一旦进入，即设置结束状态false,从而不会再次进入这里
                     mDatabaseHelper.commitAppEndEventState(false);
