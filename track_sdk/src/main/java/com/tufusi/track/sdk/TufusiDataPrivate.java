@@ -9,11 +9,16 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.widget.ProgressBar;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -23,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,15 +46,21 @@ import java.util.Map;
  */
 class TufusiDataPrivate {
 
+    private static final long SESSION_INTERVAL_TIME = 30 * 1000;
+
     /**
      * 需要忽略跟踪的Activity集合
      */
     private static List<String> mIgnoredActivities;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss" + ".SSS", Locale.CHINA);
+    private static TufusiDatabaseHelper mDatabaseHelper;
+    private static CountDownTimer countDownTimer;
 
     static {
         mIgnoredActivities = new ArrayList<>();
     }
+
+    private static WeakReference<Activity> mCurrentActivity;
 
     /**
      * 添加需忽略跟踪的Activity
@@ -127,6 +139,25 @@ class TufusiDataPrivate {
      * @param application 整个应用对象
      */
     public static void registerActivityLifecycleCallbacks(Application application) {
+        mDatabaseHelper = new TufusiDatabaseHelper(application.getApplicationContext(), application.getPackageName());
+
+        // 计时器 如果计时器终止 则触发统计事件 跟踪关闭，每十秒触发一次，30秒之后结束计时器
+        countDownTimer = new CountDownTimer(SESSION_INTERVAL_TIME, 10 * 100) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                if (mCurrentActivity != null) {
+                    // 在此埋点跟踪 AppEnd
+                    trackAppEnd(mCurrentActivity.get());
+                }
+            }
+        };
+
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
@@ -135,18 +166,34 @@ class TufusiDataPrivate {
 
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
+                mDatabaseHelper.commitAppStartEvent(true);
+                long timeDiff = System.currentTimeMillis() - mDatabaseHelper.getAppPausedTime();
+                // 如果暂停时长超过自定义间隔时长，则认为是满足 跟踪 AppEnd 事件条件
+                if (timeDiff > SESSION_INTERVAL_TIME) {
+                    // 获取 AppEnd 状态，如果不是结束状态
+                    if (!mDatabaseHelper.getAppEndEventState()) {
+                        trackAppEnd(activity);
+                    }
+                }
 
+                //  如果获取到的 AppEnd 状态是已结束，则重新开启
+                if (mDatabaseHelper.getAppEndEventState()) {
+                    mDatabaseHelper.commitAppEndEventState(false);
+                    trackAppStart(activity);
+                }
             }
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
-                // 在此埋点跟踪AppViewScreen
+                // 在此埋点跟踪 AppViewScreen
                 trackAppViewScreen(activity);
             }
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
-
+                mCurrentActivity = new WeakReference<>(activity);
+                countDownTimer.start();
+                mDatabaseHelper.commitAppPausedTime(System.currentTimeMillis());
             }
 
             @Override
@@ -164,6 +211,34 @@ class TufusiDataPrivate {
 
             }
         });
+    }
+
+    /**
+     * 注册 App Start监听
+     * <p>
+     * registerContentObserver(uri, notifyForDescendants)： 为指定的Uri注册一个ContentObserver派生类实例，当给定的Uri发生改变时，回调该实例对象去处理。
+     * uri                    需要观察的Uri(需要在UriMatcher里注册，否则该Uri也没有意义了)
+     * notifyForDescendants   为false 表示精确匹配，即只匹配该Uri；为true 表示可以同时匹配其派生的Uri
+     * observer               ContentObserver的派生类实例
+     *
+     * <p>
+     * ContentObserver - 内容观察者
+     * 目的：观察（捕捉）特定 Uri 引起的数据库的变化，继而可以做相应的处理，比较类似于数据库技术中的触发器
+     *
+     * @param application 整个应用对象
+     */
+    public static void registerActivityStateObserver(Application application) {
+        application.getContentResolver().registerContentObserver(mDatabaseHelper.getAppStartUri(),
+                false,
+                new ContentObserver(new Handler()) {
+                    @Override
+                    public void onChange(boolean selfChange, Uri uri) {
+                        // 如果数据库检索到的 app_start_uri 状态不变，则取消计时器，否则计时不准
+                        if (mDatabaseHelper.getAppStartUri().equals(uri)) {
+                            countDownTimer.cancel();
+                        }
+                    }
+                });
     }
 
     /**
@@ -246,6 +321,48 @@ class TufusiDataPrivate {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 跟踪 APP Activity 启动事件
+     *
+     * @param activity 当前activity
+     */
+    private static void trackAppStart(Activity activity) {
+        try {
+            if (activity == null) {
+                return;
+            }
+
+            JSONObject properties = new JSONObject();
+            properties.put("$activity", activity.getClass().getCanonicalName());
+            properties.put("$title", getActivityTitle(activity));
+            TufusiDataApi.getInstance().track("$AppStart", properties);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪 APP Activity 结束事件
+     *
+     * @param activity 当前activity
+     */
+    private static void trackAppEnd(Activity activity) {
+        try {
+            if (activity == null) {
+                return;
+            }
+
+            JSONObject properties = new JSONObject();
+            properties.put("$activity", activity.getClass().getCanonicalName());
+            properties.put("$title", getActivityTitle(activity));
+            TufusiDataApi.getInstance().track("$AppEnd", properties);
+            mDatabaseHelper.commitAppEndEventState(true);
+            mCurrentActivity = null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -343,6 +460,16 @@ class TufusiDataPrivate {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public static void removeIgnoredActivity(Class<?> activity) {
+        if (activity == null) {
+            return;
+        }
+
+        if (mIgnoredActivities.contains(activity.getCanonicalName())) {
+            mIgnoredActivities.remove(activity.getCanonicalName());
         }
     }
 }

@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tufusi.track.sdk">
 
-    /
+    <application>
+        <provider
+            android:name=".TufusiDataContentProvider"
+            android:authorities="${applicationId}.TufusiDataContentProvider"
+            android:enabled="true"
+            android:exported="false" />
+    </application>
 </manifest>

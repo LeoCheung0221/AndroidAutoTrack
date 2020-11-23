@@ -1,5 +1,6 @@
 package com.tufusi.track.sdk;
 
+import android.app.Activity;
 import android.app.Application;
 import android.util.Log;
 
@@ -22,21 +23,21 @@ public class TufusiDataApi {
     private static final String TAG = TufusiDataApi.class.getSimpleName();
 
     public static final String SDK_VERSION = "1.0.0";
+    private static final Object LOCK = new Object();
     private static TufusiDataApi INSTANCE;
-
-    private static final Object mLock = new Object();
-    private Map<String, Object> mDeviceInfo;
+    private static Map<String, Object> mDeviceInfo;
     private String mDeviceId;
 
     private TufusiDataApi(Application application) {
         mDeviceId = TufusiDataPrivate.getAndroidID(application.getApplicationContext());
         mDeviceInfo = TufusiDataPrivate.getDeviceInfo(application.getApplicationContext());
         TufusiDataPrivate.registerActivityLifecycleCallbacks(application);
+        TufusiDataPrivate.registerActivityStateObserver(application);
     }
 
     @Keep
     public static TufusiDataApi init(Application application) {
-        synchronized (mLock) {
+        synchronized (LOCK) {
             if (null == INSTANCE) {
                 INSTANCE = new TufusiDataApi(application);
             }
@@ -72,5 +73,14 @@ public class TufusiDataApi {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * 恢复采集指定 Activity 的页面浏览事件
+     *
+     * @param activity 指定页面
+     */
+    public void removeIgnoredActivity(Class<?> activity) {
+        TufusiDataPrivate.removeIgnoredActivity(activity);
     }
 }
