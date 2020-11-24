@@ -26,6 +26,7 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
@@ -75,6 +76,7 @@ public class AppViewOnClickListenerFragment extends Fragment {
         initRadioButton();
         initRadioGroup();
         initToggleButton();
+        initSwitchCompat();
         initRatingBar();
         initSeekBar();
         initSpinner();
@@ -196,6 +198,16 @@ public class AppViewOnClickListenerFragment extends Fragment {
     private void initToggleButton() {
         ToggleButton toggleButton = mView.findViewById(R.id.toggleButton);
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+            }
+        });
+    }
+
+    private void initSwitchCompat() {
+        SwitchCompat switchCompat = mView.findViewById(R.id.switchCompat);
+        switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
