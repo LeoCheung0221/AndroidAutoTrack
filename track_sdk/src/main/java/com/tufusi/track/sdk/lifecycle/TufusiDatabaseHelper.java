@@ -1,4 +1,4 @@
-package com.tufusi.track.sdk;
+package com.tufusi.track.sdk.lifecycle;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -11,7 +11,7 @@ import android.net.Uri;
  *
  * @description 数据采集数据库辅助类
  */
-class TufusiDatabaseHelper {
+public class TufusiDatabaseHelper {
 
     private static final String TUFUSI_DATA_CONTENT_PROVIDER = ".TufusiDataContentProvider/";
 
@@ -29,7 +29,7 @@ class TufusiDatabaseHelper {
      */
     private ContentResolver mContentResolver;
 
-    TufusiDatabaseHelper(Context context, String packageName) {
+    public TufusiDatabaseHelper(Context context, String packageName) {
         mContentResolver = context.getContentResolver();
         mAppStartState = Uri.parse("content://" + packageName + TUFUSI_DATA_CONTENT_PROVIDER + TufusiDataTable.STATE_APP_STARTED.getName());
         mAppEndState = Uri.parse("content://" + packageName + TUFUSI_DATA_CONTENT_PROVIDER + TufusiDataTable.STATE_APP_ENDED.getName());

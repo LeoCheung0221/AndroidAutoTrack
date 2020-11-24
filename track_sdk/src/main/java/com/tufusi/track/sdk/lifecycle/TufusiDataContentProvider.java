@@ -1,4 +1,4 @@
-package com.tufusi.track.sdk;
+package com.tufusi.track.sdk.lifecycle;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -12,6 +12,8 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.tufusi.track.sdk.TufusiDataApi;
 
 /**
  * Created by LeoCheung on 2020/11/23.

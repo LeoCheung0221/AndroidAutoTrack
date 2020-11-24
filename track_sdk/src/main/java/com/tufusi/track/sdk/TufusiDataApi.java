@@ -2,11 +2,15 @@ package com.tufusi.track.sdk;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Dialog;
+import android.content.Context;
 import android.util.Log;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import org.json.JSONObject;
 
@@ -15,7 +19,7 @@ import java.util.Map;
 /**
  * Created by LeoCheung on 2020/11/3.
  *
- * @description
+ * @description 数据采集对外展示接口类
  */
 @Keep
 public class TufusiDataApi {
@@ -83,6 +87,22 @@ public class TufusiDataApi {
             Log.i(TAG, TufusiDataPrivate.formatJson(jsonObject.toString()));
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    /**
+     * 埋点 Dialog 点击操作
+     */
+    public void trackDialog(@NonNull final Activity activity, @NonNull final Dialog dialog) {
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(
+                    new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            TufusiDataPrivate.delegateViewsOnClickListener(activity, dialog.getWindow().getDecorView());
+                        }
+                    }
+            );
         }
     }
 

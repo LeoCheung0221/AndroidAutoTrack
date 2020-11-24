@@ -1,11 +1,11 @@
-package com.tufusi.track.sdk;
+package com.tufusi.track.sdk.lifecycle;
 
 /**
  * Created by LeoCheung on 2020/11/23.
  *
  * @description 采集数据表 - 枚举对象
  */
-enum TufusiDataTable {
+public enum TufusiDataTable {
 
     /**
      * APP 已启动状态

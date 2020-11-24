@@ -3,7 +3,7 @@
 
     <application>
         <provider
-            android:name=".TufusiDataContentProvider"
+            android:name=".lifecycle.TufusiDataContentProvider"
             android:authorities="${applicationId}.TufusiDataContentProvider"
             android:enabled="true"
             android:exported="false" />
