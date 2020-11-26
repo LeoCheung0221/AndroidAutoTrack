@@ -45,6 +45,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.ActionMenuItemView;
+import androidx.core.view.ViewCompat;
 
 import com.tufusi.track.sdk.accessibilitydelegate.TufusiDataAccessibilityDelegate;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemClickListener;
@@ -57,6 +58,8 @@ import com.tufusi.track.sdk.listener.WrapperOnCheckedChangeListener;
 import com.tufusi.track.sdk.listener.WrapperOnClickListener;
 import com.tufusi.track.sdk.listener.WrapperOnSeekBarChangeListener;
 import com.tufusi.track.sdk.lifecycle.TufusiDatabaseHelper;
+import com.tufusi.track.sdk.transparent.WrapperAppClickOverlayLayout;
+import com.tufusi.track.sdk.utils.ViewUtils;
 import com.tufusi.track.sdk.window.TouchEventHandler;
 import com.tufusi.track.sdk.window.WrapperWindowCallback;
 
@@ -223,6 +226,8 @@ public class TufusiDataPrivate {
                     setGlobalListener(activity);
                 } else if (mode == TrackClickMode.WINDOW_CALLBACK) {
                     setWindowCallback(activity);
+                } else if (mode == TrackClickMode.TRANSPARENT_LAYOUT) {
+                    addTrackTransparentLayout(activity);
                 }
             }
 
@@ -293,6 +298,26 @@ public class TufusiDataPrivate {
         });
     }
 
+    /**
+     * 添加透明层监听
+     */
+    private static void addTrackTransparentLayout(Activity activity) {
+        try {
+            View decorView = activity.getWindow().getDecorView();
+            if (decorView instanceof ViewGroup) {
+                WrapperAppClickOverlayLayout overlayLayout = new WrapperAppClickOverlayLayout(activity);
+                ((ViewGroup) decorView).addView(overlayLayout,
+                        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                ViewCompat.setElevation(overlayLayout, 9999F);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * 设置窗口回调监听
+     */
     private static void setWindowCallback(Activity activity) {
         // 在创建时期监听窗口回调
         Window window = activity.getWindow();
@@ -300,6 +325,9 @@ public class TufusiDataPrivate {
         window.setCallback(new WrapperWindowCallback(activity, callback));
     }
 
+    /**
+     * 设置全局事件监听
+     */
     private static void setGlobalListener(final Activity activity) {
         // 在创建时期开启全局监听
         final ViewGroup rootView = getRootViewFromActivity(activity, true);
@@ -448,7 +476,7 @@ public class TufusiDataPrivate {
             int count = view.getChildCount();
             for (int i = 0; i < count; i++) {
                 View child = view.getChildAt(i);
-                if (TouchEventHandler.isContainView(child, event)) {
+                if (ViewUtils.isContainView(child, event)) {
                     jsonObject.put("$element_position", String.valueOf(i));
                     jsonObject.put("$element_content", traverseViewContent(new StringBuilder(), child));
                     break;
@@ -681,7 +709,7 @@ public class TufusiDataPrivate {
         }
 
         if (view instanceof AdapterView) {
-            matchDiffViewClickListener(context, view);
+            matchDiffViewClickListener(view);
         } else {
             setViewCustomClickListener(view);
         }
@@ -703,7 +731,7 @@ public class TufusiDataPrivate {
             return;
         }
 
-        if (!matchDiffViewClickListener(context, view)) {
+        if (!matchDiffViewClickListener(view)) {
             setViewAccessibilityDelegate(view);
         }
 
@@ -786,7 +814,7 @@ public class TufusiDataPrivate {
         }
     }
 
-    private static boolean matchDiffViewClickListener(Context context, View view) {
+    public static boolean matchDiffViewClickListener(View view) {
         if (view instanceof Spinner) {
             AdapterView.OnItemSelectedListener onItemSelectedListener =
                     ((Spinner) view).getOnItemSelectedListener();

@@ -24,6 +24,17 @@ package com.tufusi.track.sdk;
  * ③ Application.ActivityLifecycleCallbacks 要求 API 14+
  * ④ 对于 Jetpack 框架 Navigation导航来说，这里面的跳转是监控不到的，很致命 ☆
  * ⑤ 无法直接支持采集游离于 Activity 之上的 View 的点击，比如 Dialog、PopupWindow 等等。
+ *
+ * <p>
+ * {@link com.tufusi.track.sdk.TrackClickMode.ACCESSIBILITY_DELEGATE}
+ * 监听 View.AccessibilityDelegate 代理performClick的发送辅助功能事件的回调实现埋点监控
+ * 缺点：
+ * ① Application.ActivityLifecycleCallbacks 要求 API 14+
+ * ② View.hasOnClickListeners() 要求 API 15+
+ * ③ removeOnGlobalLayoutListener 要求 API 16+
+ * ④ 由于反射导致效率运行低下，会影响APP整体性能，也可能引起兼容性方面问题
+ * ⑤ 无法采集 Dialog、PopupWindow 等游离于 Activity 之外的控件点击事件
+ * ⑥ 辅助功能需要用户手动开启，在部分 Android ROM 上辅助功能可能会失效。
  */
 public enum TrackClickMode {
 
@@ -40,7 +51,12 @@ public enum TrackClickMode {
     /**
      * 检测View属性变化埋点模式
      */
-    ACCESSIBILITY_DELEGATE(2);
+    ACCESSIBILITY_DELEGATE(2),
+
+    /**
+     * 通过透明层，处理 OnTouchEvent 开启埋点
+     */
+    TRANSPARENT_LAYOUT(3);
 
     TrackClickMode(int mode) {
         this.mode = mode;

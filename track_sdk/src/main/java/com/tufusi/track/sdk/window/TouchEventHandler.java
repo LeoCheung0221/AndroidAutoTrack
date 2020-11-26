@@ -17,6 +17,7 @@ import com.tufusi.track.sdk.TufusiDataPrivate;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemSelectedListener;
 import com.tufusi.track.sdk.listener.WrapperExpandOnChildClickListener;
 import com.tufusi.track.sdk.listener.WrapperExpandOnGroupClickListener;
+import com.tufusi.track.sdk.utils.ViewUtils;
 
 import java.util.ArrayList;
 
@@ -80,7 +81,7 @@ public class TouchEventHandler {
     private static ArrayList<View> getTargetViews(View view, MotionEvent event) {
         ArrayList<View> targetViews = new ArrayList<>();
         try {
-            if (isVisible(view) && isContainView(view, event)) {
+            if (ViewUtils.isVisible(view) && ViewUtils.isContainView(view, event)) {
                 if (view instanceof AdapterView) {
                     targetViews.add(view);
                     // 如果是 ViewGroup 则继续遍历添加
@@ -111,26 +112,5 @@ public class TouchEventHandler {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    /**
-     * 视图是否可见
-     */
-    private static boolean isVisible(View view) {
-        return view.getVisibility() == View.VISIBLE;
-    }
-
-    /**
-     * 是否包含子 View
-     */
-    public static boolean isContainView(View view, MotionEvent event) {
-        // 获取触摸点的绝对位置
-        double rawX = event.getRawX();
-        double rawY = event.getRawY();
-        Rect rect = new Rect();
-        // 获取全局范围的可视矩形区域
-        view.getGlobalVisibleRect(rect);
-        // 判断该区域是否包含在点击区域
-        return rect.contains((int) rawX, (int) rawY);
     }
 }
