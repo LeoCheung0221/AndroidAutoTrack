@@ -9,6 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.tufusi.track.sdk.TrackClickMode;
+import com.tufusi.track.sdk.TufusiDataApi;
+
 public class MainFragment extends Fragment {
 
     @Override
@@ -40,6 +43,7 @@ public class MainFragment extends Fragment {
         view.findViewById(R.id.button_third).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TufusiDataApi.getInstance().setTrackClickMode(TrackClickMode.CUSTOM_LISTENER);
                 NavHostFragment.findNavController(MainFragment.this)
                         .navigate(R.id.action_MainFragment_to_ThirdFragment);
             }
@@ -47,6 +51,7 @@ public class MainFragment extends Fragment {
         view.findViewById(R.id.button_fourth).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TufusiDataApi.getInstance().setTrackClickMode(TrackClickMode.WINDOW_CALLBACK);
                 NavHostFragment.findNavController(MainFragment.this)
                         .navigate(R.id.action_MainFragment_to_FourthFragment);
             }
@@ -54,6 +59,7 @@ public class MainFragment extends Fragment {
         view.findViewById(R.id.button_fifth).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TufusiDataApi.getInstance().setTrackClickMode(TrackClickMode.ACCESSIBILITY_DELEGATE);
                 NavHostFragment.findNavController(MainFragment.this)
                         .navigate(R.id.action_MainFragment_to_FifthFragment);
             }

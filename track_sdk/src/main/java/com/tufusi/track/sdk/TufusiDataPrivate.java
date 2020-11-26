@@ -46,6 +46,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.ActionMenuItemView;
 
+import com.tufusi.track.sdk.accessibilitydelegate.TufusiDataAccessibilityDelegate;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemClickListener;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemSelectedListener;
 import com.tufusi.track.sdk.listener.WrapperExpandOnChildClickListener;
@@ -216,8 +217,9 @@ public class TufusiDataPrivate {
 
             @Override
             public void onActivityCreated(@NonNull final Activity activity, @Nullable Bundle savedInstanceState) {
-                Log.e("onActivityCreated: 当前模式", TufusiDataApi.getInstance().getTrackClickMode(mode));
-                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                Log.d("onActivityCreated: 当前模式", TufusiDataApi.getInstance().getTrackClickMode(mode));
+                if (mode == TrackClickMode.CUSTOM_LISTENER ||
+                        mode == TrackClickMode.ACCESSIBILITY_DELEGATE) {
                     setGlobalListener(activity);
                 } else if (mode == TrackClickMode.WINDOW_CALLBACK) {
                     setWindowCallback(activity);
@@ -248,12 +250,13 @@ public class TufusiDataPrivate {
             }
 
             @Override
-            public void onActivityResumed(@NonNull Activity activity) {
+            public void onActivityResumed(@NonNull final Activity activity) {
                 // 在此埋点跟踪 AppViewScreen
                 trackAppViewScreen(activity);
-                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                if (mode == TrackClickMode.CUSTOM_LISTENER ||
+                        mode == TrackClickMode.ACCESSIBILITY_DELEGATE) {
                     // 在此注册全局点击监听事件 AppClick
-                    ViewGroup rootView = getRootViewFromActivity(activity, true);
+                    final ViewGroup rootView = getRootViewFromActivity(activity, true);
                     rootView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
                 }
             }
@@ -268,7 +271,8 @@ public class TufusiDataPrivate {
 
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
-                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                if (mode == TrackClickMode.CUSTOM_LISTENER ||
+                        mode == TrackClickMode.ACCESSIBILITY_DELEGATE) {
                     // 在此移除全局监听点击事件
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
                         ViewGroup rootView = getRootViewFromActivity(activity, true);
@@ -303,7 +307,11 @@ public class TufusiDataPrivate {
             @Override
             public void onGlobalLayout() {
                 // 委托监听点击事件
-                delegateViewsOnClickListener(activity, rootView);
+                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                    delegateViewsOnClickListener(activity, rootView);
+                } else if (mode == TrackClickMode.ACCESSIBILITY_DELEGATE) {
+                    delegateViewsAccessibilityDelegate(activity, rootView);
+                }
             }
         };
     }
@@ -673,83 +681,143 @@ public class TufusiDataPrivate {
         }
 
         if (view instanceof AdapterView) {
-            if (view instanceof Spinner) {
-                AdapterView.OnItemSelectedListener onItemSelectedListener =
-                        ((Spinner) view).getOnItemSelectedListener();
-
-                if (onItemSelectedListener != null && !(onItemSelectedListener instanceof WrapperAdapterViewOnItemSelectedListener)) {
-                    ((Spinner) view).setOnItemSelectedListener(new WrapperAdapterViewOnItemSelectedListener(onItemSelectedListener));
-                }
-            } else if (view instanceof ExpandableListView) {
-                ExpandableListView.OnGroupClickListener onGroupClickListener =
-                        getExpandableOnGroupClickListener(view);
-                if (onGroupClickListener != null && !(onGroupClickListener instanceof WrapperExpandOnGroupClickListener)) {
-                    ((ExpandableListView) view).setOnGroupClickListener(new WrapperExpandOnGroupClickListener(onGroupClickListener));
-                }
-
-                ExpandableListView.OnChildClickListener onChildClickListener =
-                        getExpandableOnChildClickListener(view);
-                if (onChildClickListener != null && !(onChildClickListener instanceof WrapperExpandOnChildClickListener)) {
-                    ((ExpandableListView) view).setOnChildClickListener(new WrapperExpandOnChildClickListener(onChildClickListener));
-                }
-            } else if (view instanceof ListView || view instanceof GridView) {
-                AdapterView.OnItemClickListener onItemClickListener =
-                        ((AbsListView) view).getOnItemClickListener();
-
-                if (onItemClickListener != null && !(onItemClickListener instanceof WrapperAdapterViewOnItemClickListener)) {
-                    ((AbsListView) view).setOnItemClickListener(new WrapperAdapterViewOnItemClickListener(onItemClickListener));
-                }
-            }
+            matchDiffViewClickListener(context, view);
         } else {
-            // 获取当前 View 设置的 OnClickListener，交由我们自己来封装处理埋点
-            final View.OnClickListener listener = getOnClickListener(view);
-
-            // 判断设置的监听器类型，如果是自定义的 WrapperOnClickListener，说明已经被hook过，此处要防止重复hook
-            if (listener != null && !(listener instanceof WrapperOnClickListener)) {
-                view.setOnClickListener(new WrapperOnClickListener(listener));
-
-            } else if (view instanceof CompoundButton) {
-                CompoundButton.OnCheckedChangeListener onCheckedChangeListener
-                        = getOnCheckedChangeListener(view);
-
-                if (onCheckedChangeListener != null && !(onCheckedChangeListener instanceof WrapperOnCheckedChangeListener)) {
-                    ((CompoundButton) view).setOnCheckedChangeListener(new WrapperOnCheckedChangeListener(onCheckedChangeListener));
-                }
-            } else if (view instanceof RadioGroup) {
-                RadioGroup.OnCheckedChangeListener onCheckedChangeListener =
-                        getRadioGroupOnCheckedChangeListener(view);
-
-                if (onCheckedChangeListener != null && !(onCheckedChangeListener instanceof WrapperRadioGroupOnCheckedChangeListener)) {
-                    ((RadioGroup) view).setOnCheckedChangeListener(new WrapperRadioGroupOnCheckedChangeListener(onCheckedChangeListener));
-                }
-            } else if (view instanceof RatingBar) {
-                RatingBar.OnRatingBarChangeListener onRatingBarChangeListener =
-                        getOnRatingBarChangeListener(view);
-
-                if (onRatingBarChangeListener != null && !(onRatingBarChangeListener instanceof WrapperOnRatingBarChangeListener)) {
-                    ((RatingBar) view).setOnRatingBarChangeListener(new WrapperOnRatingBarChangeListener(onRatingBarChangeListener));
-                }
-            } else if (view instanceof SeekBar) {
-                SeekBar.OnSeekBarChangeListener onSeekBarChangeListener =
-                        getOnSeekBarChangeListener(view);
-
-                if (onSeekBarChangeListener != null && !(onSeekBarChangeListener instanceof WrapperOnSeekBarChangeListener)) {
-                    ((SeekBar) view).setOnSeekBarChangeListener(new WrapperOnSeekBarChangeListener(onSeekBarChangeListener));
-                }
-            }
+            setViewCustomClickListener(view);
         }
 
         // 如果是 ViewGroup ，需要递归遍历子 View，并 hook
         if (view instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) view;
-            int childCount = viewGroup.getChildCount();
-            if (childCount > 0) {
-                for (int i = 0; i < childCount; i++) {
-                    View child = viewGroup.getChildAt(i);
+            iterateViewGroup(context, view);
+        }
+    }
+
+    /**
+     * 委托设置全局view检测事件
+     *
+     * @param context 当前页面对象
+     * @param view    根布局，用于区分是否是activity/fragment还是dialog
+     */
+    protected static void delegateViewsAccessibilityDelegate(Context context, View view) {
+        if (context == null || view == null) {
+            return;
+        }
+
+        if (!matchDiffViewClickListener(context, view)) {
+            setViewAccessibilityDelegate(view);
+        }
+
+        // 如果是 ViewGroup ，需要递归遍历子 View，并 hook
+        if (view instanceof ViewGroup) {
+            iterateViewGroup(context, view);
+        }
+    }
+
+    private static void setViewCustomClickListener(View view) {
+        // 获取当前 View 设置的 OnClickListener，交由我们自己来封装处理埋点
+        final View.OnClickListener listener = getOnClickListener(view);
+
+        // 判断设置的监听器类型，如果是自定义的 WrapperOnClickListener，说明已经被hook过，此处要防止重复hook
+        if (listener != null && !(listener instanceof WrapperOnClickListener)) {
+            view.setOnClickListener(new WrapperOnClickListener(listener));
+
+        } else if (view instanceof CompoundButton) {
+            CompoundButton.OnCheckedChangeListener onCheckedChangeListener
+                    = getOnCheckedChangeListener(view);
+
+            if (onCheckedChangeListener != null && !(onCheckedChangeListener instanceof WrapperOnCheckedChangeListener)) {
+                ((CompoundButton) view).setOnCheckedChangeListener(new WrapperOnCheckedChangeListener(onCheckedChangeListener));
+            }
+        } else if (view instanceof RadioGroup) {
+            RadioGroup.OnCheckedChangeListener onCheckedChangeListener =
+                    getRadioGroupOnCheckedChangeListener(view);
+
+            if (onCheckedChangeListener != null && !(onCheckedChangeListener instanceof WrapperRadioGroupOnCheckedChangeListener)) {
+                ((RadioGroup) view).setOnCheckedChangeListener(new WrapperRadioGroupOnCheckedChangeListener(onCheckedChangeListener));
+            }
+        } else if (view instanceof RatingBar) {
+            RatingBar.OnRatingBarChangeListener onRatingBarChangeListener =
+                    getOnRatingBarChangeListener(view);
+
+            if (onRatingBarChangeListener != null && !(onRatingBarChangeListener instanceof WrapperOnRatingBarChangeListener)) {
+                ((RatingBar) view).setOnRatingBarChangeListener(new WrapperOnRatingBarChangeListener(onRatingBarChangeListener));
+            }
+        } else if (view instanceof SeekBar) {
+            SeekBar.OnSeekBarChangeListener onSeekBarChangeListener =
+                    getOnSeekBarChangeListener(view);
+
+            if (onSeekBarChangeListener != null && !(onSeekBarChangeListener instanceof WrapperOnSeekBarChangeListener)) {
+                ((SeekBar) view).setOnSeekBarChangeListener(new WrapperOnSeekBarChangeListener(onSeekBarChangeListener));
+            }
+        }
+    }
+
+    private static void setViewAccessibilityDelegate(View view) {
+        View.AccessibilityDelegate delegate = null;
+        Class<? extends View> viewClazz = view.getClass();
+        try {
+            Method accessibilityDelegate = viewClazz.getMethod("getAccessibilityDelegate");
+            delegate = (View.AccessibilityDelegate) accessibilityDelegate.invoke(view);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        if (!(delegate instanceof TufusiDataAccessibilityDelegate)) {
+            view.setAccessibilityDelegate(new TufusiDataAccessibilityDelegate(delegate));
+        }
+    }
+
+    private static void iterateViewGroup(Context context, View view) {
+        ViewGroup viewGroup = (ViewGroup) view;
+        int childCount = viewGroup.getChildCount();
+        if (childCount > 0) {
+            for (int i = 0; i < childCount; i++) {
+                View child = viewGroup.getChildAt(i);
+                if (mode == TrackClickMode.CUSTOM_LISTENER) {
                     delegateViewsOnClickListener(context, child);
+                } else if (mode == TrackClickMode.ACCESSIBILITY_DELEGATE) {
+                    delegateViewsAccessibilityDelegate(context, child);
                 }
             }
         }
+    }
+
+    private static boolean matchDiffViewClickListener(Context context, View view) {
+        if (view instanceof Spinner) {
+            AdapterView.OnItemSelectedListener onItemSelectedListener =
+                    ((Spinner) view).getOnItemSelectedListener();
+
+            if (onItemSelectedListener != null && !(onItemSelectedListener instanceof WrapperAdapterViewOnItemSelectedListener)) {
+                ((Spinner) view).setOnItemSelectedListener(new WrapperAdapterViewOnItemSelectedListener(onItemSelectedListener));
+            }
+            return true;
+        } else if (view instanceof ExpandableListView) {
+            ExpandableListView.OnGroupClickListener onGroupClickListener =
+                    getExpandableOnGroupClickListener(view);
+            if (onGroupClickListener != null && !(onGroupClickListener instanceof WrapperExpandOnGroupClickListener)) {
+                ((ExpandableListView) view).setOnGroupClickListener(new WrapperExpandOnGroupClickListener(onGroupClickListener));
+            }
+
+            ExpandableListView.OnChildClickListener onChildClickListener =
+                    getExpandableOnChildClickListener(view);
+            if (onChildClickListener != null && !(onChildClickListener instanceof WrapperExpandOnChildClickListener)) {
+                ((ExpandableListView) view).setOnChildClickListener(new WrapperExpandOnChildClickListener(onChildClickListener));
+            }
+            return true;
+        } else if (view instanceof ListView || view instanceof GridView) {
+            AdapterView.OnItemClickListener onItemClickListener =
+                    ((AdapterView<?>) view).getOnItemClickListener();
+
+            if (onItemClickListener != null && !(onItemClickListener instanceof WrapperAdapterViewOnItemClickListener)) {
+                ((AdapterView<?>) view).setOnItemClickListener(new WrapperAdapterViewOnItemClickListener(onItemClickListener));
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

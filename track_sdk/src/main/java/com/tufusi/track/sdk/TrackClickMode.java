@@ -35,7 +35,12 @@ public enum TrackClickMode {
     /**
      * 监听窗口回调埋点模式
      */
-    WINDOW_CALLBACK(1);
+    WINDOW_CALLBACK(1),
+
+    /**
+     * 检测View属性变化埋点模式
+     */
+    ACCESSIBILITY_DELEGATE(2);
 
     TrackClickMode(int mode) {
         this.mode = mode;

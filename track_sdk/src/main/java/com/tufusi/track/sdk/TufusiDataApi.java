@@ -33,6 +33,7 @@ public class TufusiDataApi {
     private static final String APP_CLICK = "$AppClick";
     private static final String TRACK_CLICK_MODE_1 = "代理 View.OnClickListener";
     private static final String TRACK_CLICK_MODE_2 = "代理 Window.Callback";
+    private static final String TRACK_CLICK_MODE_3 = "代理 View.AccessibilityDelegate";
 
     private static TufusiDataApi INSTANCE;
     private static Map<String, Object> mDeviceInfo;
@@ -112,14 +113,16 @@ public class TufusiDataApi {
      * @return 埋点方案名称
      */
     public String getTrackClickMode(TrackClickMode mode) {
-        String modeString = APP_CLICK;
         switch (mode) {
             case CUSTOM_LISTENER:
                 return TRACK_CLICK_MODE_1;
             case WINDOW_CALLBACK:
                 return TRACK_CLICK_MODE_2;
+            case ACCESSIBILITY_DELEGATE:
+                return TRACK_CLICK_MODE_3;
+            default:
+                return "";
         }
-        return modeString;
     }
 
     /**
@@ -145,5 +148,9 @@ public class TufusiDataApi {
      */
     public void removeIgnoredActivity(Class<?> activity) {
         TufusiDataPrivate.removeIgnoredActivity(activity);
+    }
+
+    public void setTrackClickMode(TrackClickMode clickMode) {
+        mode = clickMode;
     }
 }
