@@ -2,6 +2,7 @@ package com.tufusi.autotrack;
 
 import android.app.Application;
 
+import com.tufusi.track.sdk.TrackClickMode;
 import com.tufusi.track.sdk.TufusiDataApi;
 
 /**
@@ -21,6 +22,6 @@ public class TufusiTrackApp extends Application {
      * 初始化埋点sdk
      */
     private void initTufusiDataApi() {
-        TufusiDataApi.init(this);
+        TufusiDataApi.init(this, TrackClickMode.WINDOW_CALLBACK);
     }
 }

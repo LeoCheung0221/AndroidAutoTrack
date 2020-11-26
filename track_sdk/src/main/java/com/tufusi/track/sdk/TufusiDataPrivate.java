@@ -19,9 +19,12 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -43,16 +46,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.ActionMenuItemView;
 
-import com.tufusi.track.sdk.clickevent.WrapperAdapterViewOnItemClickListener;
-import com.tufusi.track.sdk.clickevent.WrapperAdapterViewOnItemSelectedListener;
-import com.tufusi.track.sdk.clickevent.WrapperExpandOnChildClickListener;
-import com.tufusi.track.sdk.clickevent.WrapperExpandOnGroupClickListener;
-import com.tufusi.track.sdk.clickevent.WrapperOnRatingBarChangeListener;
-import com.tufusi.track.sdk.clickevent.WrapperRadioGroupOnCheckedChangeListener;
-import com.tufusi.track.sdk.clickevent.WrapperOnCheckedChangeListener;
-import com.tufusi.track.sdk.clickevent.WrapperOnClickListener;
-import com.tufusi.track.sdk.clickevent.WrapperOnSeekBarChangeListener;
+import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemClickListener;
+import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemSelectedListener;
+import com.tufusi.track.sdk.listener.WrapperExpandOnChildClickListener;
+import com.tufusi.track.sdk.listener.WrapperExpandOnGroupClickListener;
+import com.tufusi.track.sdk.listener.WrapperOnRatingBarChangeListener;
+import com.tufusi.track.sdk.listener.WrapperRadioGroupOnCheckedChangeListener;
+import com.tufusi.track.sdk.listener.WrapperOnCheckedChangeListener;
+import com.tufusi.track.sdk.listener.WrapperOnClickListener;
+import com.tufusi.track.sdk.listener.WrapperOnSeekBarChangeListener;
 import com.tufusi.track.sdk.lifecycle.TufusiDatabaseHelper;
+import com.tufusi.track.sdk.window.TouchEventHandler;
+import com.tufusi.track.sdk.window.WrapperWindowCallback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,7 +66,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Wrapper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,6 +92,9 @@ public class TufusiDataPrivate {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss" + ".SSS", Locale.CHINA);
     private static TufusiDatabaseHelper mDatabaseHelper;
     private static CountDownTimer countDownTimer;
+    // 通过 ViewTree观察者对象全局监听点击事件
+    private static ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener;
+    private static TrackClickMode mode;
 
     static {
         mIgnoredActivities = new ArrayList<>();
@@ -207,20 +214,14 @@ public class TufusiDataPrivate {
 
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
 
-            // 通过 ViewTree观察者对象全局监听点击事件
-            private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener;
-
             @Override
             public void onActivityCreated(@NonNull final Activity activity, @Nullable Bundle savedInstanceState) {
-                // 在创建时期开启全局监听
-                final ViewGroup rootView = getRootViewFromActivity(activity, true);
-                onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        // 委托监听点击事件
-                        delegateViewsOnClickListener(activity, rootView);
-                    }
-                };
+                Log.e("onActivityCreated: 当前模式", TufusiDataApi.getInstance().getTrackClickMode(mode));
+                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                    setGlobalListener(activity);
+                } else if (mode == TrackClickMode.WINDOW_CALLBACK) {
+                    setWindowCallback(activity);
+                }
             }
 
             @Override
@@ -250,9 +251,11 @@ public class TufusiDataPrivate {
             public void onActivityResumed(@NonNull Activity activity) {
                 // 在此埋点跟踪 AppViewScreen
                 trackAppViewScreen(activity);
-                // 在此注册全局点击监听事件 AppClick
-                ViewGroup rootView = getRootViewFromActivity(activity, true);
-                rootView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                    // 在此注册全局点击监听事件 AppClick
+                    ViewGroup rootView = getRootViewFromActivity(activity, true);
+                    rootView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+                }
             }
 
             @Override
@@ -265,10 +268,12 @@ public class TufusiDataPrivate {
 
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
-                // 在此移除全局监听点击事件
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-                    ViewGroup rootView = getRootViewFromActivity(activity, true);
-                    rootView.getViewTreeObserver().removeOnGlobalLayoutListener(onGlobalLayoutListener);
+                if (mode == TrackClickMode.CUSTOM_LISTENER) {
+                    // 在此移除全局监听点击事件
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
+                        ViewGroup rootView = getRootViewFromActivity(activity, true);
+                        rootView.getViewTreeObserver().removeOnGlobalLayoutListener(onGlobalLayoutListener);
+                    }
                 }
             }
 
@@ -282,6 +287,25 @@ public class TufusiDataPrivate {
 
             }
         });
+    }
+
+    private static void setWindowCallback(Activity activity) {
+        // 在创建时期监听窗口回调
+        Window window = activity.getWindow();
+        Window.Callback callback = window.getCallback();
+        window.setCallback(new WrapperWindowCallback(activity, callback));
+    }
+
+    private static void setGlobalListener(final Activity activity) {
+        // 在创建时期开启全局监听
+        final ViewGroup rootView = getRootViewFromActivity(activity, true);
+        onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // 委托监听点击事件
+                delegateViewsOnClickListener(activity, rootView);
+            }
+        };
     }
 
     /**
@@ -398,6 +422,35 @@ public class TufusiDataPrivate {
                 jsonObject.put("$activity", activity.getClass().getCanonicalName());
             }
 
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪点击事件埋点处理
+     */
+    public static void trackAdapterViewOnClick(AdapterView<?> view, MotionEvent event) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", view.getClass().getCanonicalName());
+            jsonObject.put("$element_id", getViewId(view));
+
+            int count = view.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = view.getChildAt(i);
+                if (TouchEventHandler.isContainView(child, event)) {
+                    jsonObject.put("$element_position", String.valueOf(i));
+                    jsonObject.put("$element_content", traverseViewContent(new StringBuilder(), child));
+                    break;
+                }
+            }
+
+            Activity activity = getActivityFromView(view);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
             TufusiDataApi.getInstance().track("$AppClick", jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -705,7 +758,7 @@ public class TufusiDataPrivate {
      * @param view 指定的view
      * @return 返回监听器事件
      */
-    private static ExpandableListView.OnGroupClickListener getExpandableOnGroupClickListener(View view) {
+    public static ExpandableListView.OnGroupClickListener getExpandableOnGroupClickListener(View view) {
         try {
             Class<?> expandClazz = Class.forName("android.widget.ExpandableListView");
             Field mOnGroupClickListener = expandClazz.getDeclaredField("mOnGroupClickListener");
@@ -729,7 +782,7 @@ public class TufusiDataPrivate {
      * @param view 指定的view
      * @return 返回监听器事件
      */
-    private static ExpandableListView.OnChildClickListener getExpandableOnChildClickListener(View view) {
+    public static ExpandableListView.OnChildClickListener getExpandableOnChildClickListener(View view) {
         try {
             Class<?> expandClazz = Class.forName("android.widget.ExpandableListView");
             Field mOnChildClickListener = expandClazz.getDeclaredField("mOnChildClickListener");
@@ -1054,6 +1107,10 @@ public class TufusiDataPrivate {
         if (mIgnoredActivities.contains(activity.getCanonicalName())) {
             mIgnoredActivities.remove(activity.getCanonicalName());
         }
+    }
+
+    public static void setTrackClickMode(TrackClickMode mode) {
+        TufusiDataPrivate.mode = mode;
     }
 
 }

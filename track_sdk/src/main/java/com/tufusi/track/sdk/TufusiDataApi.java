@@ -16,6 +16,8 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
+import static com.tufusi.track.sdk.TrackClickMode.CUSTOM_LISTENER;
+
 /**
  * Created by LeoCheung on 2020/11/3.
  *
@@ -28,13 +30,21 @@ public class TufusiDataApi {
 
     public static final String SDK_VERSION = "1.0.0";
     private static final Object LOCK = new Object();
+    private static final String APP_CLICK = "$AppClick";
+    private static final String TRACK_CLICK_MODE_1 = "代理 View.OnClickListener";
+    private static final String TRACK_CLICK_MODE_2 = "代理 Window.Callback";
+
     private static TufusiDataApi INSTANCE;
     private static Map<String, Object> mDeviceInfo;
+    private static TrackClickMode mode;
     private String mDeviceId;
 
-    private TufusiDataApi(Application application) {
+    private TufusiDataApi(Application application, TrackClickMode mode) {
+        TufusiDataPrivate.setTrackClickMode(mode);
+
         mDeviceId = TufusiDataPrivate.getAndroidID(application.getApplicationContext());
         mDeviceInfo = TufusiDataPrivate.getDeviceInfo(application.getApplicationContext());
+
         TufusiDataPrivate.registerActivityLifecycleCallbacks(application);
         TufusiDataPrivate.registerActivityStateObserver(application);
     }
@@ -43,13 +53,15 @@ public class TufusiDataApi {
      * 埋点初始化函数 内部实现单例模式 用私有构造函数初始化埋点sdk
      *
      * @param application 应用对象
+     * @param mode        点击事件埋点模式
      * @return 单例对象
      */
     @Keep
-    public static TufusiDataApi init(Application application) {
+    public static TufusiDataApi init(Application application, TrackClickMode mode) {
+        TufusiDataApi.mode = mode;
         synchronized (LOCK) {
             if (null == INSTANCE) {
-                INSTANCE = new TufusiDataApi(application);
+                INSTANCE = new TufusiDataApi(application, mode);
             }
         }
         return INSTANCE;
@@ -74,6 +86,9 @@ public class TufusiDataApi {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("event", option);
+            if (option.equals(APP_CLICK)) {
+                jsonObject.put("track_mode", getTrackClickMode(TufusiDataApi.mode));
+            }
             jsonObject.put("device_id", mDeviceId);
 
             JSONObject sendProperties = new JSONObject(mDeviceInfo);
@@ -88,6 +103,23 @@ public class TufusiDataApi {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * 获取当前点击事件埋点方案
+     *
+     * @param mode 埋点模式
+     * @return 埋点方案名称
+     */
+    public String getTrackClickMode(TrackClickMode mode) {
+        String modeString = APP_CLICK;
+        switch (mode) {
+            case CUSTOM_LISTENER:
+                return TRACK_CLICK_MODE_1;
+            case WINDOW_CALLBACK:
+                return TRACK_CLICK_MODE_2;
+        }
+        return modeString;
     }
 
     /**
