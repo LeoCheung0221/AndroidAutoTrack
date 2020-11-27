@@ -330,7 +330,7 @@ public class AppViewAccessibilityDelegateFragment extends Fragment {
 
     private void showMultiChoiceDialog(Activity context) {
         Dialog dialog;
-        boolean[] selected = new boolean[]{true, true, true, true};
+        boolean[] selected = new boolean[]{true, true, true, true, true};
         CharSequence[] items = {"多选项一", "多选项二", "多选项三", "多选项四", "多选项五"};
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("测试多选弹窗埋点");

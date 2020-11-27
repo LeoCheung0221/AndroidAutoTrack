@@ -39,6 +39,11 @@ package com.tufusi.track.sdk;
 public enum TrackClickMode {
 
     /**
+     * 关闭点击埋点
+     */
+    NONE(-1),
+
+    /**
      * 自定义监听器埋点模式
      */
     CUSTOM_LISTENER(0),
@@ -56,7 +61,12 @@ public enum TrackClickMode {
     /**
      * 通过透明层，处理 OnTouchEvent 开启埋点
      */
-    TRANSPARENT_LAYOUT(3);
+    TRANSPARENT_LAYOUT(3),
+
+    /**
+     * AOP编程 AspectJ框架接入埋点
+     */
+    ASPECT_J(4);
 
     TrackClickMode(int mode) {
         this.mode = mode;

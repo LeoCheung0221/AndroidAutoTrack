@@ -1,0 +1,24 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+
+    implementation "org.aspectj:aspectjtools:1.9.0"
+    implementation "org.aspectj:aspectjrt:1.9.0"
+}
+
+repositories {
+    jcenter()
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        // 本地仓库路径，此处暂定项目根目录 repo文件夹下
+        repository(url: uri('../repo'))
+        pom.groupId = 'com.tufusi'
+        pom.artifactId = 'autotrack-gradle-plugin'
+        pom.version = "1.0.0"
+    }
+}

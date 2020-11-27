@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.jakewharton.butterknife'
+apply plugin: 'com.tufusi.track.plugin'
 
 android {
     compileSdkVersion 29
@@ -30,6 +31,10 @@ android {
     dataBinding {
         enabled = true
     }
+}
+
+tufusiTrack {
+    debug = true
 }
 
 dependencies {

@@ -5,12 +5,14 @@ import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatButton;
 
 import org.json.JSONObject;
 
@@ -35,6 +37,7 @@ public class TufusiDataApi {
     private static final String TRACK_CLICK_MODE_2 = "代理 Window.Callback";
     private static final String TRACK_CLICK_MODE_3 = "代理 View.AccessibilityDelegate";
     private static final String TRACK_CLICK_MODE_4 = "代理 透明层";
+    private static final String TRACK_CLICK_MODE_5 = "AspectJ";
 
     private static TufusiDataApi INSTANCE;
     private static Map<String, Object> mDeviceInfo;
@@ -61,6 +64,17 @@ public class TufusiDataApi {
     @Keep
     public static TufusiDataApi init(Application application, TrackClickMode mode) {
         TufusiDataApi.mode = mode;
+        synchronized (LOCK) {
+            if (null == INSTANCE) {
+                INSTANCE = new TufusiDataApi(application, mode);
+            }
+        }
+        return INSTANCE;
+    }
+
+    @Keep
+    public static TufusiDataApi init(Application application) {
+        TufusiDataApi.mode = TrackClickMode.NONE;
         synchronized (LOCK) {
             if (null == INSTANCE) {
                 INSTANCE = new TufusiDataApi(application, mode);
@@ -123,6 +137,8 @@ public class TufusiDataApi {
                 return TRACK_CLICK_MODE_3;
             case TRANSPARENT_LAYOUT:
                 return TRACK_CLICK_MODE_4;
+            case ASPECT_J:
+                return TRACK_CLICK_MODE_5;
             default:
                 return "";
         }
@@ -155,5 +171,29 @@ public class TufusiDataApi {
 
     public void setTrackClickMode(TrackClickMode clickMode) {
         mode = clickMode;
+    }
+
+    /**
+     * 设置View属性
+     *
+     * @param view       要设置的View
+     * @param properties 要设置的View的属性
+     */
+    public void setViewProperties(View view, JSONObject properties) {
+        if (view == null || properties == null) {
+            return;
+        }
+        view.setTag(R.id.tufusi_analytics_tag_view_properties, properties);
+    }
+
+    /**
+     * 忽略View
+     *
+     * @param view 要忽略的View
+     */
+    public void setIgnoreView(View view) {
+        if (view != null) {
+            view.setTag(R.id.tufusi_analytics_tag_view_ignored, "ignore_view");
+        }
     }
 }

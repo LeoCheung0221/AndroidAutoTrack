@@ -5,8 +5,10 @@ import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Application;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -20,6 +22,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,10 +30,14 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -38,12 +45,16 @@ import android.widget.RatingBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDialog;
 import androidx.appcompat.view.menu.ActionMenuItemView;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.view.ViewCompat;
 
 import com.tufusi.track.sdk.accessibility.TufusiDataAccessibilityDelegate;
@@ -462,6 +473,279 @@ public class TufusiDataPrivate {
         }
     }
 
+    @Keep
+    public static void trackViewOnClickAOP(View view) {
+        if (mode != TrackClickMode.ASPECT_J) {
+            return;
+        }
+        try {
+            if ("ignore_view".equals(view.getTag(R.id.tufusi_analytics_tag_view_ignored))) {
+                return;
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", getElementType(view));
+            jsonObject.put("$element_id", getViewId(view));
+            jsonObject.put("$element_content", getElementContent(view));
+
+            Activity activity = getActivityFromView(view);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+                jsonObject.put("$activity_title", getActivityTitle(activity));
+            }
+
+            try {
+                Object pObject = view.getTag(R.id.tufusi_analytics_tag_view_properties);
+                if (pObject != null) {
+                    if (pObject instanceof JSONObject) {
+                        JSONObject pProperties = (JSONObject) pObject;
+                        mergeJSONObject(pProperties, jsonObject);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪点击事件埋点处理
+     *
+     * @param view 当前点击view
+     */
+    @Keep
+    public static void trackViewOnClick(Object object, MenuItem menuItem) {
+        try {
+            Context context = null;
+            if (object instanceof Context) {
+                context = (Context) object;
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", "menuItem");
+
+            if (context != null) {
+                String idString = null;
+                try {
+                    idString = context.getResources().getResourceEntryName(menuItem.getItemId());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                if (!TextUtils.isEmpty(idString)) {
+                    jsonObject.put("$element_id", idString);
+                }
+            }
+
+            jsonObject.put("$element_content", menuItem.getTitle());
+
+            Activity activity = getActivityFromContext(context);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪点击事件埋点处理
+     *
+     * @param dialogInterface 当前弹窗接口对象
+     * @param whichButton     点击按钮位置
+     */
+    @Keep
+    public static void trackViewOnClick(DialogInterface dialogInterface, int whichButton) {
+        try {
+            Dialog dialog = null;
+            if (dialogInterface instanceof Dialog) {
+                dialog = (Dialog) dialogInterface;
+            }
+
+            if (dialog == null) {
+                return;
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", "dialog");
+
+            Context context = dialog.getContext();
+            Button button = null;
+
+            if (dialog instanceof android.app.AlertDialog) {
+                button = ((android.app.AlertDialog) dialog).getButton(whichButton);
+            } else if (dialog instanceof androidx.appcompat.app.AlertDialog) {
+                button = ((androidx.appcompat.app.AlertDialog) dialog).getButton(whichButton);
+            }
+
+            if (button != null) {
+                String idString = null;
+                try {
+                    idString = context.getResources().getResourceEntryName(button.getId());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                if (!TextUtils.isEmpty(idString)) {
+                    jsonObject.put("$element_id", idString);
+                }
+
+                jsonObject.put("$element_content", button.getText());
+            }
+
+            Activity activity = TufusiDataPrivate.getActivityFromContext(context);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪点击事件埋点处理
+     *
+     * @param dialogInterface 当前弹窗接口对象
+     * @param whichButton     点击按钮位置
+     * @param isChecked       是否选中选项
+     */
+    @Keep
+    public static void trackViewOnClick(DialogInterface dialogInterface, int whichButton, boolean isChecked) {
+        try {
+            Dialog dialog = null;
+            if (dialogInterface instanceof Dialog) {
+                dialog = (Dialog) dialogInterface;
+            }
+
+            if (dialog == null) {
+                return;
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", "dialog");
+
+            Context context = dialog.getContext();
+            ListView listView = null;
+
+            if (dialog instanceof android.app.AlertDialog) {
+                listView = ((android.app.AlertDialog) dialog).getListView();
+            } else if (dialog instanceof androidx.appcompat.app.AlertDialog) {
+                listView = ((androidx.appcompat.app.AlertDialog) dialog).getListView();
+            }
+
+            if (listView != null) {
+                ListAdapter listAdapter = listView.getAdapter();
+                Object object = listAdapter.getItem(whichButton);
+
+                if (object != null) {
+                    if (object instanceof String) {
+                        jsonObject.put("$element_content", object);
+                    }
+                }
+            }
+
+            jsonObject.put("isChecked", isChecked);
+
+            Activity activity = TufusiDataPrivate.getActivityFromContext(context);
+            if (activity == null) {
+                activity = dialog.getOwnerActivity();
+            }
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 跟踪点击事件埋点处理
+     *
+     * @param view      当前点击view
+     * @param isChecked 是否选中选项
+     */
+    @Keep
+    public static void trackViewOnClick(CompoundButton view, boolean isChecked) {
+        try {
+            Context context = view.getContext();
+            if (context == null) {
+                return;
+            }
+
+            JSONObject jsonObject = new JSONObject();
+
+            String viewType;
+            String viewText = null;
+            if (view instanceof CheckBox) {
+                viewType = "CheckBox";
+                CheckBox checkBox = (CheckBox) view;
+                if (!TextUtils.isEmpty(checkBox.getText())) {
+                    viewText = checkBox.getText().toString();
+                }
+            } else if (view instanceof SwitchCompat) {
+                viewType = "SwitchCompat";
+                SwitchCompat switchCompat = (SwitchCompat) view;
+                if (!TextUtils.isEmpty(switchCompat.getTextOn())) {
+                    viewText = switchCompat.getTextOn().toString();
+                }
+            } else if (view instanceof ToggleButton) {
+                viewType = "ToggleButton";
+                ToggleButton toggleButton = (ToggleButton) view;
+                if (!TextUtils.isEmpty(toggleButton.getTextOn())) {
+                    viewText = toggleButton.getTextOn().toString();
+                }
+            } else if (view instanceof RadioButton) {
+                viewType = "RadioButton";
+                RadioButton radioButton = (RadioButton) view;
+                if (!TextUtils.isEmpty(radioButton.getText())) {
+                    viewText = radioButton.getText().toString();
+                }
+            } else {
+                viewType = view.getClass().getCanonicalName();
+                String elementContent = getElementContent(view);
+                if (!TextUtils.isEmpty(elementContent)) {
+                    viewText = elementContent;
+                }
+            }
+            if (!TextUtils.isEmpty(viewType)) {
+                jsonObject.put("$element_type", viewType);
+            }
+
+            String idString = null;
+            try {
+                idString = context.getResources().getResourceEntryName(view.getId());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            if (!TextUtils.isEmpty(idString)) {
+                jsonObject.put("$element_id", idString);
+            }
+
+            if (!TextUtils.isEmpty(viewText)) {
+                jsonObject.put("$element_content", viewText);
+            }
+
+            Activity activity = getActivityFromContext(context);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
+
+            jsonObject.put("isChecked", isChecked);
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 跟踪点击事件埋点处理
      */
@@ -550,6 +834,23 @@ public class TufusiDataPrivate {
             }
 
             Activity activity = getActivityFromView(parent);
+            if (activity != null) {
+                jsonObject.put("$activity", activity.getClass().getCanonicalName());
+            }
+
+            TufusiDataApi.getInstance().track("$AppClick", jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Keep
+    public static void trackTabHost(String tabName, Activity activity) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("$element_type", "TabHost");
+            jsonObject.put("$element_id", "");
+            jsonObject.put("$element_content", tabName);
             if (activity != null) {
                 jsonObject.put("$activity", activity.getClass().getCanonicalName());
             }
@@ -669,6 +970,36 @@ public class TufusiDataPrivate {
                     if (context instanceof Activity) {
                         activity = (Activity) context;
                     }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return activity;
+    }
+
+    /**
+     * 获取View 所属 Activity
+     *
+     * @param context 上下文环境
+     * @return 返回所属Activity
+     */
+    private static Activity getActivityFromContext(Context context) {
+        Activity activity = null;
+        if (context == null) {
+            return null;
+        }
+
+        try {
+            if (context instanceof Activity) {
+                activity = (Activity) context;
+            } else if (context instanceof ContextWrapper) {
+                while (!(context instanceof Activity) && context instanceof ContextWrapper) {
+                    // 往父类遍历上下文环境，找寻最终依附的上下文环境对象
+                    context = ((ContextWrapper) context).getBaseContext();
+                }
+                if (context instanceof Activity) {
+                    activity = (Activity) context;
                 }
             }
         } catch (Exception ex) {
@@ -1201,6 +1532,40 @@ public class TufusiDataPrivate {
         if (mIgnoredActivities.contains(activity.getCanonicalName())) {
             mIgnoredActivities.remove(activity.getCanonicalName());
         }
+    }
+
+    private static String getElementType(View view) {
+        if (view == null) {
+            return null;
+        }
+
+        String viewType;
+        if (view instanceof CheckBox) { // CheckBox
+            viewType = "CheckBox";
+        } else if (view instanceof SwitchCompat) {
+            viewType = "SwitchCompat";
+        } else if (view instanceof RadioButton) { // RadioButton
+            viewType = "RadioButton";
+        } else if (view instanceof ToggleButton) { // ToggleButton
+            viewType = "ToggleButton";
+        } else if (view instanceof Button) { // Button
+            viewType = "Button";
+        } else if (view instanceof CheckedTextView) { // CheckedTextView
+            viewType = "CheckedTextView";
+        } else if (view instanceof TextView) { // TextView
+            viewType = "TextView";
+        } else if (view instanceof ImageButton) { // ImageButton
+            viewType = "ImageButton";
+        } else if (view instanceof ImageView) { // ImageView
+            viewType = "ImageView";
+        } else if (view instanceof RatingBar) {
+            viewType = "RatingBar";
+        } else if (view instanceof SeekBar) {
+            viewType = "SeekBar";
+        } else {
+            viewType = view.getClass().getCanonicalName();
+        }
+        return viewType;
     }
 
     public static void setTrackClickMode(TrackClickMode mode) {

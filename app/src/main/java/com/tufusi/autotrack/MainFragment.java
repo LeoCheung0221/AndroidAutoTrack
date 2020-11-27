@@ -75,6 +75,7 @@ public class MainFragment extends Fragment {
         view.findViewById(R.id.button_seventh).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TufusiDataApi.getInstance().setTrackClickMode(TrackClickMode.ASPECT_J);
                 NavHostFragment.findNavController(MainFragment.this)
                         .navigate(R.id.action_MainFragment_to_SeventhFragment);
             }
