@@ -34,7 +34,7 @@ public class TufusiDataApi {
     private static final String TRACK_CLICK_MODE_1 = "代理 View.OnClickListener";
     private static final String TRACK_CLICK_MODE_2 = "代理 Window.Callback";
     private static final String TRACK_CLICK_MODE_3 = "代理 View.AccessibilityDelegate";
-    private static final String TRACK_CLICK_MODE_4 = "透明层代理";
+    private static final String TRACK_CLICK_MODE_4 = "代理 透明层";
 
     private static TufusiDataApi INSTANCE;
     private static Map<String, Object> mDeviceInfo;

@@ -25,7 +25,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -47,7 +46,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.core.view.ViewCompat;
 
-import com.tufusi.track.sdk.accessibilitydelegate.TufusiDataAccessibilityDelegate;
+import com.tufusi.track.sdk.accessibility.TufusiDataAccessibilityDelegate;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemClickListener;
 import com.tufusi.track.sdk.listener.WrapperAdapterViewOnItemSelectedListener;
 import com.tufusi.track.sdk.listener.WrapperExpandOnChildClickListener;
@@ -60,7 +59,6 @@ import com.tufusi.track.sdk.listener.WrapperOnSeekBarChangeListener;
 import com.tufusi.track.sdk.lifecycle.TufusiDatabaseHelper;
 import com.tufusi.track.sdk.transparent.WrapperAppClickOverlayLayout;
 import com.tufusi.track.sdk.utils.ViewUtils;
-import com.tufusi.track.sdk.window.TouchEventHandler;
 import com.tufusi.track.sdk.window.WrapperWindowCallback;
 
 import org.json.JSONException;
