@@ -35,9 +35,14 @@ public class TufusiDataAspectJ {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
 
-        Log.i(TAG, String.format(Locale.CHINA, "Method:<%s> cost=%s ns",
-                method.toGenericString(),
-                String.valueOf(endMethodTime - startMethodTime)));
+        long diffTime = endMethodTime - startMethodTime;
+        if (diffTime > 500) {
+            Log.i(TAG, String.format(
+                    Locale.CHINA, "Method:<%s> cost=%s ns",
+                    method.toGenericString(),
+                    String.valueOf(diffTime)));
+        }
+
         return returnObj;
     }
 
