@@ -48,7 +48,7 @@ public class TufusiDataAspectJPlugin implements Plugin<Project> {
                     println("####################################################################")
                     println("########                                                    ########")
                     println("########                                                    ########")
-                    println("########            欢迎使用 TufusiTrack® 编译插件            ########")
+                    println("########        欢迎使用 TufusiAspectJTrack® 编译插件        ########")
                     println("########                                                    ########")
                     println("########                                                    ########")
                     println("####################################################################")

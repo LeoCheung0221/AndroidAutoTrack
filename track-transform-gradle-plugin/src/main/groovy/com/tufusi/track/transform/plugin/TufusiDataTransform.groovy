@@ -63,6 +63,21 @@ class TufusiDataTransform extends Transform {
         return false
     }
 
+    /**
+     * 打印提示信息
+     */
+    static void printCopyRight() {
+        println()
+        println("####################################################################")
+        println("########                                                    ########")
+        println("########                                                    ########")
+        println("########          欢迎使用 TufusiASMTrack® 编译插件          ########")
+        println("########                                                    ########")
+        println("########                                                    ########")
+        println("####################################################################")
+        println()
+    }
+
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
         _transform(transformInvocation.context, transformInvocation.inputs, transformInvocation.outputProvider, transformInvocation.incremental);
@@ -74,7 +89,7 @@ class TufusiDataTransform extends Transform {
         if (!incremental) {
             outputProvider.deleteAll();
         }
-
+        printCopyRight()
         /**
          * Transform 的 inputs 有两种类型，一种是目录，一种是 jar 包，需要分开遍历
          */
