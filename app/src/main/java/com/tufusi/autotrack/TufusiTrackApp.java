@@ -22,6 +22,6 @@ public class TufusiTrackApp extends Application {
      * 初始化埋点sdk
      */
     private void initTufusiDataApi() {
-        TufusiDataApi.init(this, TrackClickMode.NONE);
+        TufusiDataApi.init(this, TrackClickMode.ASM_TRANSFORM);
     }
 }

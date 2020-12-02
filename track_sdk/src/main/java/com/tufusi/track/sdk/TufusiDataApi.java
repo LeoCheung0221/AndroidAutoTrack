@@ -50,8 +50,10 @@ public class TufusiDataApi {
         mDeviceId = TufusiDataPrivate.getAndroidID(application.getApplicationContext());
         mDeviceInfo = TufusiDataPrivate.getDeviceInfo(application.getApplicationContext());
 
-        TufusiDataPrivate.registerActivityLifecycleCallbacks(application);
-        TufusiDataPrivate.registerActivityStateObserver(application);
+        if (mode != TrackClickMode.ASM_TRANSFORM) {
+            TufusiDataPrivate.registerActivityLifecycleCallbacks(application);
+            TufusiDataPrivate.registerActivityStateObserver(application);
+        }
     }
 
     /**

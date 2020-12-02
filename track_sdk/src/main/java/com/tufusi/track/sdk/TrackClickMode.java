@@ -35,6 +35,23 @@ package com.tufusi.track.sdk;
  * ④ 由于反射导致效率运行低下，会影响APP整体性能，也可能引起兼容性方面问题
  * ⑤ 无法采集 Dialog、PopupWindow 等游离于 Activity 之外的控件点击事件
  * ⑥ 辅助功能需要用户手动开启，在部分 Android ROM 上辅助功能可能会失效。
+ *
+ * <p>
+ * {@link com.tufusi.track.sdk.TrackClickMode.TRANSPARENT_LAYOUT}
+ * 监听 任意界面透明层点击事件的回调实现埋点监控
+ * 缺点：
+ * ① Application.ActivityLifecycleCallbacks 要求 API 14+
+ * ② View.hasOnClickListeners() 要求 API 15+
+ * ③ 无法采集 Dialog、PopupWindow 等游离于 Activity 之外的控件点击事件
+ * ④ 每次点击均需遍历一次根布局View，效率低下
+ *
+ * <p>
+ * {@link com.tufusi.track.sdk.TrackClickMode.ASPECT_J}
+ * 利用AOP编程，横向切面监听点击事件回调 实现埋点监控
+ * 缺点：
+ * ① 无法植入第三方库进行监控
+ * ② 由于自定义的切点依赖编程语言，目前无法兼容 Lambda语法表达式
+ * ③ 会有兼容问题，比如：D8、Gradle 4.x等，这跟asj库有关
  */
 public enum TrackClickMode {
 
@@ -66,7 +83,12 @@ public enum TrackClickMode {
     /**
      * AOP编程 AspectJ框架接入埋点
      */
-    ASPECT_J(4);
+    ASPECT_J(4),
+
+    /**
+     * 字节码技术埋点
+     */
+    ASM_TRANSFORM(5);
 
     TrackClickMode(int mode) {
         this.mode = mode;

@@ -867,7 +867,7 @@ public class TufusiDataPrivate {
      * @param view 当前点击 view
      * @return 返回显示文本
      */
-    private static String getElementContent(View view) {
+    public static String getElementContent(View view) {
         if (view == null) {
             return null;
         }
@@ -912,7 +912,7 @@ public class TufusiDataPrivate {
      * @param root          遍历视图对象
      * @return 返回遍历拼接内容
      */
-    private static String traverseViewContent(StringBuilder stringBuilder, View root) {
+    public static String traverseViewContent(StringBuilder stringBuilder, View root) {
         try {
             if (root == null) {
                 return stringBuilder.toString();
@@ -951,7 +951,7 @@ public class TufusiDataPrivate {
      * @param view 附属activity的view
      * @return 返回所属Activity
      */
-    private static Activity getActivityFromView(View view) {
+    public static Activity getActivityFromView(View view) {
         Activity activity = null;
         if (view == null) {
             return null;
@@ -984,7 +984,7 @@ public class TufusiDataPrivate {
      * @param context 上下文环境
      * @return 返回所属Activity
      */
-    private static Activity getActivityFromContext(Context context) {
+    public static Activity getActivityFromContext(Context context) {
         Activity activity = null;
         if (context == null) {
             return null;
@@ -1014,7 +1014,7 @@ public class TufusiDataPrivate {
      * @param view 点击view
      * @return id字符串
      */
-    private static String getViewId(View view) {
+    public static String getViewId(View view) {
         String idString = null;
         try {
             if (view.getId() != View.NO_ID) {
@@ -1534,7 +1534,7 @@ public class TufusiDataPrivate {
         }
     }
 
-    private static String getElementType(View view) {
+    public static String getElementType(View view) {
         if (view == null) {
             return null;
         }
