@@ -8,7 +8,7 @@ import org.objectweb.asm.commons.AdviceAdapter
 
 /**
  * Created by LeoCheung on 2020/12/2.
- * @description
+ * @description 访问类字节码方法信息
  */
 class TufusiDataDefaultMethodVisitor extends AdviceAdapter {
     /**
@@ -121,16 +121,26 @@ class TufusiDataDefaultMethodVisitor extends AdviceAdapter {
         super.visitInsn(opcode)
     }
 
+    /**
+     * 可以在这里通过注解的方式操作字节码
+     */
     @Override
-    AnnotationVisitor visitAnnotation(String s, boolean b) {
-        return super.visitAnnotation(s, b)
+    AnnotationVisitor visitAnnotation(String des, boolean visible) {
+        return super.visitAnnotation(des, visible)
     }
 
+    /**
+     * 进入方法时插入字节码
+     */
     @Override
     protected void onMethodEnter() {
         super.onMethodEnter()
     }
 
+    /**
+     * 退出方法前插入字节码
+     * @param opcode
+     */
     @Override
     protected void onMethodExit(int opcode) {
         super.onMethodExit(opcode)
